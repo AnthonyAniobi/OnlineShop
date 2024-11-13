@@ -73,12 +73,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             bottom: 0,
             child: Opacity(
               opacity: 0.3,
-              child: Hero(
-                tag: ONBOARDING_HERO_TAG,
-                child: Image.asset(
-                  AppImage.onboarding,
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                AppImage.onboarding,
+                fit: BoxFit.cover,
               ),
             ),
           ),

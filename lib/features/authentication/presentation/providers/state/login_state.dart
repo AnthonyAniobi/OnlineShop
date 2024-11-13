@@ -16,6 +16,16 @@ class LoggedInState extends LoginAuthState {
   const LoggedInState({this.user, this.error, super.status});
   final User? user;
   final AppError? error;
+
+  LoggedInState copy({
+    AppError? error,
+    User? user,
+    RequestStatus? status,
+  }) =>
+      LoggedInState(
+          error: error ?? this.error,
+          user: user ?? this.user,
+          status: status ?? this.status);
 }
 
 class LoggedOutState extends LoginAuthState {

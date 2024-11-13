@@ -1,24 +1,30 @@
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:online_shop/features/authentication/presentation/providers/auth_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:online_shop/features/authentication/presentation/providers/state/signup_state.dart';
 import 'package:online_shop/features/authentication/presentation/widgets/auth_field.dart';
-import 'package:online_shop/routes/app_route.dart';
-import 'package:online_shop/shared/constants/app_image.dart';
-import 'package:online_shop/shared/globals.dart';
+import 'package:online_shop/features/authentication/presentation/providers/auth_providers.dart';
+import 'package:online_shop/features/authentication/presentation/providers/state/login_state.dart';
+import 'package:online_shop/shared/constants/app_svg.dart';
 import 'package:online_shop/shared/services/form_validator.dart';
 import 'package:online_shop/shared/theme/app_colors.dart';
 import 'package:online_shop/shared/widgets/app_button.dart';
+import 'package:online_shop/shared/widgets/custom_image.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ProfileScreenState();
+
+  static Route<ProfileScreen> route(RouteSettings routeSettings) {
+    return MaterialPageRoute(
+      builder: (context) {
+        return const ProfileScreen();
+      },
+    );
+  }
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
@@ -26,6 +32,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   TextEditingController nameCntrl = TextEditingController();
   TextEditingController passwordCntrl = TextEditingController();
   final GlobalKey<FormState> formState = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.watch(loginStateNotifierProvider) as LoggedInState;
+      emailCntrl.text = state.user?.email ?? '';
+      nameCntrl.text = state.user?.name ?? '';
+      passwordCntrl.text = state.user?.password ?? '';
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
@@ -37,23 +55,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(signupStateNotifierProvider);
+    final state = ref.watch(loginStateNotifierProvider) as LoggedInState;
     ref.listen(
       signupStateNotifierProvider.select((value) => value),
       ((previous, current) {
         //show Snackbar on failure
-        if (current is AccountCreatedState) {
-          Fluttertoast.showToast(msg: 'Account Created Successfully');
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            AppRouter.login,
-            (route) => route.isFirst,
-          );
-        } else if (current.status.isFailed) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(current.error?.message ?? ''),
-            ),
-          );
+        if (current is LoggedInState) {
+          if (current.status.isSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Profile Updated successfully'),
+              ),
+            );
+          } else if (current.status.isFailed) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(current.error?.message ?? ''),
+              ),
+            );
+          }
         }
       }),
     );
@@ -64,13 +84,55 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                width: 150.r,
-                height: 150.r,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  // image: DecorationImage(image: NetworkImage(state.)),
-                  color: AppColors.white,
+              10.verticalSpace,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10.r),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const AppBackButton(),
+                    const Spacer(),
+                    SizedBox(
+                      width: 150.r,
+                      height: 150.r,
+                      child: Stack(
+                        children: [
+                          Container(
+                            width: 150.r,
+                            height: 150.r,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                image: NetworkImage(state.user?.avatar ?? ''),
+                                fit: BoxFit.cover,
+                              ),
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 2,
+                              ),
+                              color: AppColors.white,
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: InkWell(
+                              onTap: editProfileImage,
+                              child: const CircleAvatar(
+                                backgroundColor: AppColors.white,
+                                child: CustomImage(
+                                  AppSvg.edit,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    40.horizontalSpace,
+                  ],
                 ),
               ),
               20.verticalSpace,
@@ -125,48 +187,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void saveData() {
-    Navigator.of(context).pushReplacementNamed(AppRouter.login);
+    if (formState.currentState?.validate() ?? false) {
+      ref.read(loginStateNotifierProvider.notifier).updateUserData(
+            email: emailCntrl.text,
+            password: passwordCntrl.text,
+            name: nameCntrl.text,
+          );
+    }
   }
 
-  void saveProfile() async {
-    if (formState.currentState?.validate() ?? false) {
-      final result = await showDialog<bool>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('Please Pick an Image'),
-                  content: const Text(
-                    'A profile image is required for account registration',
+  void editProfileImage() async {
+    final result = await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text('Please Pick an Image'),
+                content: const Text(
+                  'pick an image from your device',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Cancel'),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Cancel'),
-                    ),
-                    SizedBox(
-                      width: 100.w,
-                      child: AppButton(
-                          text: 'Pick Image',
-                          onTap: () {
-                            Navigator.of(context).pop(true);
-                          }),
-                    )
-                  ],
-                );
-              }) ??
-          false;
-      if (result) {
-        final file = await pickFile();
-        if (file != null) {
-          ref.read(signupStateNotifierProvider.notifier).createAccount(
-                emailCntrl.text,
-                passwordCntrl.text,
-                nameCntrl.text,
-                file,
+                  SizedBox(
+                    width: 100.w,
+                    child: AppButton(
+                        text: 'Pick Image',
+                        onTap: () {
+                          Navigator.of(context).pop(true);
+                        }),
+                  )
+                ],
               );
-        }
+            }) ??
+        false;
+    if (result) {
+      final file = await pickFile();
+      if (file != null) {
+        ref.read(loginStateNotifierProvider.notifier).updateUserImage(
+              file: file,
+            );
       }
     }
   }

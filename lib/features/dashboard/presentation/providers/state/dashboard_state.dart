@@ -17,7 +17,6 @@ enum DashboardLoadingState {
 class DashboardState extends Equatable {
   const DashboardState({
     this.productList = const [],
-    this.isLoading = false,
     this.hasData = false,
     this.loadingState = DashboardLoadingState.initial,
     this.message = '',
@@ -25,7 +24,6 @@ class DashboardState extends Equatable {
 
   const DashboardState.initial({
     this.productList = const [],
-    this.isLoading = false,
     this.hasData = false,
     this.loadingState = DashboardLoadingState.initial,
     this.message = '',
@@ -36,10 +34,8 @@ class DashboardState extends Equatable {
     bool? hasData,
     DashboardLoadingState? loadingState,
     String? message,
-    bool? isLoading,
   }) {
     return DashboardState(
-      isLoading: isLoading ?? this.isLoading,
       productList: productList ?? this.productList,
       hasData: hasData ?? this.hasData,
       loadingState: loadingState ?? this.loadingState,
@@ -51,11 +47,10 @@ class DashboardState extends Equatable {
   final bool hasData;
   final DashboardLoadingState loadingState;
   final String message;
-  final bool isLoading;
 
   @override
   String toString() {
-    return 'DashboardState(isLoading:$isLoading, productLength: ${productList.length}, hasData: $hasData, loadingState: $loadingState, message: $message)';
+    return ' productLength: ${productList.length}, hasData: $hasData, loadingState: $loadingState, message: $message)';
   }
 
   @override

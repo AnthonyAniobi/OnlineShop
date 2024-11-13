@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:online_shop/features/authentication/domain/repositories/auth_repository.dart';
 import 'package:online_shop/features/authentication/presentation/providers/state/login_state.dart';
 import 'package:online_shop/shared/data/local/local_token_storage.dart';
@@ -43,5 +44,62 @@ class LoginNotifier extends StateNotifier<LoginAuthState> {
   Future<void> logout() async {
     await LocalTokenStorage.reset();
     state = const LoggedOutState();
+  }
+
+  Future<void> updateUserData(
+      {String? email, String? password, String? name}) async {
+    final loggedInState = state as LoggedInState;
+    state = loggedInState.copy(status: RequestStatus.loading);
+
+    final response = await authRepository.updateUser(
+      id: loggedInState.user!.id,
+      data: {
+        if (email != null) 'email': email,
+        if (password != null) 'password': password,
+        if (name != null) 'name': name,
+      },
+    );
+
+    // call login request
+    state = await response.fold(
+      (failure) =>
+          loggedInState.copy(status: RequestStatus.failed, error: failure),
+      (user) async {
+        /// user data is not gotten yet
+        return loggedInState.copy(status: RequestStatus.success, user: user);
+      },
+    );
+  }
+
+  Future<void> updateUserImage({required PlatformFile file}) async {
+    final loggedInState = state as LoggedInState;
+    state = loggedInState.copy(status: RequestStatus.loading);
+
+    final response = await authRepository.uploadFile(file: file);
+    String? url;
+
+    // call login request
+    state = await response.fold(
+      (failure) =>
+          loggedInState.copy(status: RequestStatus.failed, error: failure),
+      (imageUrl) async {
+        /// user data is not gotten yet
+        url = imageUrl;
+        return loggedInState;
+      },
+    );
+
+    // if image is uploaded send image url to the path
+    if (url != null) {
+      final profileResponse =
+          await authRepository.updateUser(id: loggedInState.user!.id, data: {
+        'avatar': url,
+      });
+      state = await profileResponse.fold(
+        (error) =>
+            loggedInState.copy(status: RequestStatus.failed, error: error),
+        (user) => loggedInState.copy(user: user, status: RequestStatus.success),
+      );
+    }
   }
 }

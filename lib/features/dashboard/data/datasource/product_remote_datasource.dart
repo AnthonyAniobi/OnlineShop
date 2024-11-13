@@ -18,7 +18,8 @@ class ProductRemoteDatasource extends ProductDatasource {
     if (response.hasError) {
       throw response.error;
     }
-    final listResponse = List<Map<String, dynamic>>.from(response.data as List);
+    final listResponse =
+        List<Map<String, dynamic>>.from(response.data!['data'] as List);
     return listResponse.map((prod) => Product.fromJson(prod)).toList();
   }
 

@@ -52,7 +52,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       ((previous, current) {
         //show Snackbar on failure
         if (current is AccountCreatedState) {
-          Fluttertoast.showToast(msg: 'Account Created Successfully');
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account Created Successfully'),
+            ),
+          );
+
           Navigator.of(context).pushNamedAndRemoveUntil(
             AppRouter.login,
             (route) => route.isFirst,
@@ -76,12 +81,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             bottom: 0,
             child: Opacity(
               opacity: 0.3,
-              child: Hero(
-                tag: ONBOARDING_HERO_TAG,
-                child: Image.asset(
-                  AppImage.onboarding,
-                  fit: BoxFit.cover,
-                ),
+              child: Image.asset(
+                AppImage.onboarding,
+                fit: BoxFit.cover,
               ),
             ),
           ),

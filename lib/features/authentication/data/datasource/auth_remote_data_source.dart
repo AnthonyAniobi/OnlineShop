@@ -33,7 +33,7 @@ class AuthUserRemoteDataSource implements AuthUserDataSource {
       },
     );
     if (response.hasError) throw response.error;
-    return response.data!['access_token'];
+    return (response.data! as Map<String, dynamic>)['access_token'];
   }
 
   @override
@@ -54,7 +54,7 @@ class AuthUserRemoteDataSource implements AuthUserDataSource {
     );
     if (response.hasError) throw response.error;
 
-    return User.fromJson(response.data!);
+    return User.fromJson(response.data! as Map<String, dynamic>);
   }
 
   @override
@@ -64,7 +64,7 @@ class AuthUserRemoteDataSource implements AuthUserDataSource {
     );
     if (response.hasError) throw response.error;
 
-    return User.fromJson(response.data!);
+    return User.fromJson(response.data! as Map<String, dynamic>);
   }
 
   @override
@@ -76,7 +76,7 @@ class AuthUserRemoteDataSource implements AuthUserDataSource {
     );
     if (response.hasError) throw response.error;
 
-    return User.fromJson(response.data!);
+    return User.fromJson(response.data! as Map<String, dynamic>);
   }
 
   @override
@@ -91,6 +91,6 @@ class AuthUserRemoteDataSource implements AuthUserDataSource {
     );
 
     if (response.hasError) throw response.error;
-    return response.data!['location'];
+    return (response.data! as Map<String, dynamic>)['location'];
   }
 }

@@ -19,4 +19,5 @@ class AppSvg {
   static const String heartFilled = 'assets/svg/heart_filled.svg';
   static const String heartOutline = 'assets/svg/heart_outline.svg';
   static const String search = 'assets/svg/search.svg';
+  static const String back = 'assets/svg/back.svg';
 }

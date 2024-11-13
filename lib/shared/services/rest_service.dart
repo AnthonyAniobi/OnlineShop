@@ -64,13 +64,18 @@ class RestService {
 
       Map<String, dynamic> data;
       try {
-        data = Map<String, dynamic>.from(response.data);
+        if (response.data is List) {
+          data = {'data': response.data};
+        } else {
+          data = Map<String, dynamic>.from(response.data);
+        }
       } catch (e) {
         data = {};
       }
 
-      if ((response.statusCode == 200) || (response.statusCode == 201))
+      if ((response.statusCode == 200) || (response.statusCode == 201)) {
         return ApiResponse(data: data);
+      }
 
       dLog('API error: - $response');
 

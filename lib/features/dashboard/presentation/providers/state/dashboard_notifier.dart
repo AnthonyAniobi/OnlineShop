@@ -14,7 +14,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   Future<void> fetchProducts() async {
     state = state.copyWith(
       loadingState: DashboardLoadingState.loading,
-      isLoading: true,
     );
 
     final response = await repository.fetchProducts();
@@ -25,7 +24,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   Future<void> searchProducts(String query) async {
     state = state.copyWith(
       loadingState: DashboardLoadingState.loading,
-      isLoading: true,
     );
 
     final response = await repository.searchProducts(
@@ -40,7 +38,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
       state = state.copyWith(
         loadingState: DashboardLoadingState.failure,
         message: failure.message,
-        isLoading: false,
       );
     }, (data) {
       state = state.copyWith(
@@ -48,7 +45,6 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         loadingState: DashboardLoadingState.loaded,
         hasData: true,
         message: data.isEmpty ? 'No products found' : '',
-        isLoading: false,
       );
     });
   }
